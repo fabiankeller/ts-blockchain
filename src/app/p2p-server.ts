@@ -1,6 +1,7 @@
 import Blockchain from '../blockchain/blockchain';
 import * as WebSocket from 'ws';
 import TransactionPool from '../wallet/transaction-pool';
+import Transaction from '../wallet/transaction';
 
 const P2P_PORT: string = process.env.P2P_PORT || '5001';
 
@@ -21,7 +22,7 @@ export default class Peer2PeerServer {
     blockchain: Blockchain;
     transactionPool: TransactionPool;
     webSockets: WebSocket[] = [];
-    readonly server: WebSocket.Server;
+    server: WebSocket.Server;
 
     constructor(blockchain: Blockchain, transactionPool: TransactionPool) {
         this.blockchain = blockchain;
@@ -44,6 +45,9 @@ export default class Peer2PeerServer {
             webSocket.on('open', () => {
                 this.connectSocket(webSocket);
             })
+            webSocket.on('error', () => {
+                // do nothing
+            });
         })
     }
 
@@ -57,14 +61,6 @@ export default class Peer2PeerServer {
         this.sendChain(webSocket);
     }
 
-    sendChain(websocket: WebSocket): void {
-        websocket.send(JSON.stringify({
-            type: MESSAGE_TYPES.chain,
-            chain: this.blockchain.chain
-        }));
-    }
-
-
     messageHandler(socket: WebSocket): void {
         socket.on('message', message => {
             const messageData = JSON.parse(message.toString());
@@ -74,14 +70,44 @@ export default class Peer2PeerServer {
                     this.blockchain.replaceChain(messageData.chain);
                     break;
                 case MESSAGE_TYPES.transaction:
+                    console.log('Received new transaction.');
                     this.transactionPool.updateOrAddTransaction(messageData.transaction);
                     break;
                 case MESSAGE_TYPES.clear_transaction:
+                    console.log('Received message to clear transactions.')
                     this.transactionPool.clear();
                     break;
                 default:
                     throw new Error('undefined message type: ' + messageData.type);
             }
         });
+    }
+
+    broadcastClearTx(): void {
+        this.webSockets.forEach(webSocket => webSocket.send(JSON.stringify({
+            type: MESSAGE_TYPES.clear_transaction
+        })));
+    }
+
+    broadcastTx(transaction: Transaction): void {
+        this.webSockets.forEach(webSocket => this.sendTransaction(webSocket, transaction));
+    }
+
+    sendTransaction(webSocket: WebSocket, transaction: Transaction): void {
+        webSocket.send(JSON.stringify({
+            type: MESSAGE_TYPES.transaction,
+            transaction
+        }));
+    }
+
+    syncChains(): void {
+        this.webSockets.forEach(webSocket => this.sendChain(webSocket));
+    }
+
+    sendChain(websocket: WebSocket): void {
+        websocket.send(JSON.stringify({
+            type: MESSAGE_TYPES.chain,
+            chain: this.blockchain.chain
+        }));
     }
 }

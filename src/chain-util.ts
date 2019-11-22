@@ -20,4 +20,13 @@ export default class ChainUtil {
     static genID(): string {
         return uuidV1();
     }
+
+    static verifySignature(publicKey: string, signature: elliptic.ec.Signature, expectedDataHash: string): boolean {
+        try {
+            return ec.keyFromPublic(publicKey, 'hex').verify(expectedDataHash, signature);
+        } catch(error) {
+            console.log('Signature verification error for public key: ' + publicKey + '; error message: ' + error.message);
+            return false;
+        }
+    }
 }

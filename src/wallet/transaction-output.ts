@@ -1,4 +1,6 @@
 export default class TransactionOutput {
-    amount: number;
-    address: string;
+    constructor(
+        public amount: number,
+        public address: string    
+    ) {}
 }

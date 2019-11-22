@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest --watchAll"
+    "test": "jest --watchAll",
+    "dev": "nodemon ./src/app",
+    "start": "node ./src/app"
   },
   "repository": {
     "type": "git",
@@ -17,9 +19,9 @@
   },
   "homepage": "https://github.com/fabiankeller/ts-blockchain#readme",
   "devDependencies": {
+    "@types/elliptic": "6.4.10",
     "@types/express": "4.17.1",
     "@types/jest": "24.0.23",
-    "@types/elliptic": "6.4.10",
     "jest": "24.9.0",
     "nodemon": "2.0.0"
   },
