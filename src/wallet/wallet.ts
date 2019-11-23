@@ -27,7 +27,7 @@ export default class Wallet {
     static getBlockchainWallet(): Wallet {
         if (!Wallet.blockchainWallet) {
             Wallet.blockchainWallet = new Wallet();
-            Wallet.blockchainWallet.publicKey = 'blockchain-wallet-address';
+            Wallet.blockchainWallet.publicKey = config.BLOCKCHAIN_WALLET_ADDRESS;
         }
         return Wallet.blockchainWallet;
     }
